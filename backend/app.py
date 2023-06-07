@@ -9,6 +9,8 @@ import base64
 import face_recognition
 import cv2
 import numpy as np
+from PIL import Image
+from io import BytesIO
 
 app = Flask(__name__)
 DATABASE = 'users.db'
@@ -21,10 +23,10 @@ def hello_world():  # put application's code here
     return 'Hello World!'
 
 
-def get_user_id(username):
+def get_username(username):
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
-    c.execute("SELECT id FROM users WHERE username = ?", (username,))
+    c.execute("SELECT * FROM users WHERE username = ?", (username,))
     result = c.fetchone()
     conn.close()
 
@@ -48,16 +50,12 @@ def register():
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
     # check if user already exists
-    user_id = get_user_id(username)
+    user_id = get_username(username)
     if user_id:
         return jsonify({'error': 'Username already exists'}), 400
     else:
-        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)",
-                       (username, hashed_password))
-        user_id = cursor.lastrowid
-
-    cursor.execute("INSERT INTO faces (user_id, face_data) VALUES (?, ?)",
-                   (user_id, photo_data))
+        cursor.execute("INSERT INTO users (username, password, face_data) VALUES (?, ?, ?)",
+                       (username, hashed_password, photo_data))
 
     conn.commit()
     conn.close()
@@ -79,25 +77,32 @@ def login():
     user = cursor.fetchone()
     conn.close()
 
-    if not user or not bcrypt.checkpw(password.encode('utf-8'), user[2]):
+    if not user or not bcrypt.checkpw(password.encode('utf-8'), user[1]):
         return jsonify({'error': 'Invalid username or password'}), 401
 
     # create JWT token
-    token = jwt.encode({'user_id': user[0], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+    token = jwt.encode({'username': user[0], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
                        app.config['SECRET_KEY'])
 
     token_base64 = base64.b64encode(token.encode('utf-8')).decode('utf-8')
     return jsonify({'token': token_base64})
 
 
+# Hàm xử lý ảnh blob và so sánh khuôn mặt
+def compare_faces(image_known, image_unknown):
+    known_encoding = face_recognition.face_encodings(image_known)[0]
+    unknown_encoding = face_recognition.face_encodings(image_unknown)[0]
+
+    results = face_recognition.compare_faces([known_encoding], unknown_encoding, tolerance=0.5)
+    return results[0]
+
+
 @app.route('/api/loginFace', methods=['POST'])
 def login_face():
     data = request.get_json()
     username = data['username']
-    photo_data = request.json.get('photo')
-    photo_data = base64.b64decode(photo_data)
-    image_np = np.frombuffer(photo_data, dtype=np.uint8)
-    image_unknown = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
+    photo_data = data['photo']
+    image_unknown = base64_to_image(photo_data)
 
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -105,38 +110,47 @@ def login_face():
     cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
     user = cursor.fetchone()
 
-
     auth = False
 
     if user:
-        cursor.execute('SELECT face_data FROM faces WHERE user_id = ?', (user[0],))
-        user_face = cursor.fetchone()
-        blob = user_face[0]
+        blob = user[2]
 
-        # Chuyển đổi blob thành hình ảnh
-        arr = np.frombuffer(blob, dtype=np.uint8)
-        image_known = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+        image_known = blob_to_image(blob)
 
-        auth = init_face(image_known, image_unknown)
+        auth = compare_faces(image_known, image_unknown)
 
-    token_base64 = ""
-    if auth:
-        # create JWT token
-        token = jwt.encode({'user_id': user[1], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
-                           app.config['SECRET_KEY'])
-
-        token_base64 = base64.b64encode(token.encode('utf-8')).decode('utf-8')
     conn.close()
 
-    return jsonify({'token': token_base64})
+    # if auth:
+    #     # Tạo JWT token
+    #     token = jwt.encode({'username': user[0], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+    #                        app.config['SECRET_KEY'])
+    #     token_base64 = base64.b64encode(token.encode('utf-8')).decode('utf-8')
+    #     return jsonify({'token': token_base64})
+
+    # Thay đổi phần trả về trong hàm login_face
+
+    token = jwt.encode({'username': user[0], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)}, app.config['SECRET_KEY'])
+    if auth:
+        token_base64 = base64.b64encode(token.encode('utf-8')).decode('utf-8')
+        return jsonify({'token': token_base64})
+    else:
+        return jsonify({'token': False})
 
 
-def init_face(image_known, image_unknown):
-    know_encoding = face_recognition.face_encodings(image_known)[0]
-    unknown_encoding = face_recognition.face_encodings(image_unknown)[0]
+# Hàm chuyển đổi Base64 thành ảnh numpy array
+def base64_to_image(base64_data):
+    image_data = base64.b64decode(base64_data)
+    image_np = np.frombuffer(image_data, dtype=np.uint8)
+    image_rgb = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
+    return image_rgb
 
-    results = face_recognition.compare_faces([know_encoding], unknown_encoding, tolerance=0.6)
-    return results
+
+# Hàm chuyển đổi blob thành ảnh numpy array
+def blob_to_image(blob):
+    arr = np.frombuffer(blob, dtype=np.uint8)
+    image_rgb = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+    return image_rgb
 
 
 if __name__ == '__main__':
