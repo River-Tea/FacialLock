@@ -5,7 +5,7 @@ import * as Permissions from 'expo-permissions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://192.168.1.7:5000';
+const API_BASE_URL = 'http://192.168.1.6:5000';
 
 const LoginFaceScreen = ({ navigation }) => {
     const [username, setUsername] = useState('');
@@ -50,7 +50,7 @@ const LoginFaceScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Registration</Text>
+            <Text style={styles.title}>Login By Face</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Username"
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 10,
+        marginVertical: 10,
     },
     buttonText: {
         color: '#fff',

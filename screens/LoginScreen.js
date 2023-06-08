@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { TextInput } from 'react-native-paper';
+import { View, StyleSheet, Text, TouchableOpacity, TextInput } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'http://192.168.1.7:5000';
+const API_BASE_URL = 'http://192.168.1.6:5000';
 
 const LoginScreen = ({ navigation }) => {
     const [username, setUsername] = useState('');
@@ -13,7 +12,7 @@ const LoginScreen = ({ navigation }) => {
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
             setUsername('');
-            setPassword('')
+            setPassword('');
         });
         return unsubscribe;
     }, [navigation]);
@@ -30,7 +29,7 @@ const LoginScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
+            <Text style={styles.title}>Login By Password</Text>
             <TextInput style={styles.input} placeholder="Username" onChangeText={setUsername} value={username} />
             <TextInput style={styles.input} placeholder="Password" secureTextEntry={true} onChangeText={setPassword} value={password} />
             <TouchableOpacity style={styles.button} onPress={login}>
@@ -56,12 +55,13 @@ const styles = StyleSheet.create({
     },
     input: {
         width: '80%',
-        height: 40,
+        height: 55,
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 5,
         padding: 10,
         marginBottom: 10,
+        fontSize: 18
     },
     button: {
         width: '80%',
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 10,
+        marginVertical: 10,
     },
     buttonText: {
         color: '#fff',

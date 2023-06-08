@@ -9,8 +9,7 @@ import base64
 import face_recognition
 import cv2
 import numpy as np
-from PIL import Image
-from io import BytesIO
+
 
 app = Flask(__name__)
 DATABASE = 'users.db'
@@ -120,15 +119,6 @@ def login_face():
         auth = compare_faces(image_known, image_unknown)
 
     conn.close()
-
-    # if auth:
-    #     # Tạo JWT token
-    #     token = jwt.encode({'username': user[0], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
-    #                        app.config['SECRET_KEY'])
-    #     token_base64 = base64.b64encode(token.encode('utf-8')).decode('utf-8')
-    #     return jsonify({'token': token_base64})
-
-    # Thay đổi phần trả về trong hàm login_face
 
     token = jwt.encode({'username': user[0], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)}, app.config['SECRET_KEY'])
     if auth:

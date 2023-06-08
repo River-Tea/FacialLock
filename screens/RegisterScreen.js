@@ -4,7 +4,7 @@ import { Camera } from 'expo-camera';
 import * as Permissions from 'expo-permissions';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://192.168.1.7:5000';
+const API_BASE_URL = 'http://192.168.1.6:5000';
 
 const RegisterScreen = ({ navigation }) => {
     const [username, setUsername] = useState('');
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 10,
+        marginVertical: 10,
     },
     buttonText: {
         color: '#fff',

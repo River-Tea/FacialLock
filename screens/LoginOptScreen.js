@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
 
 
@@ -12,15 +12,18 @@ const LoginOptScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>LoginOptScreen</Text>
+            <Image
+                style={styles.thumbnail}
+                source={require('../assets/login_option_thumb.jpg')} />
             <TouchableOpacity
                 style={styles.button}
                 onPress={handleNaviLogin}>
-                <Text style={styles.buttonText}>Login by password</Text>
+                <Text style={styles.buttonText}>Login by Password</Text>
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.button}
                 onPress={handleNaviLoginFace}>
-                <Text style={styles.buttonText}>Lagin by Face</Text>
+                <Text style={styles.buttonText}>Login by Face</Text>
             </TouchableOpacity>
         </View>
     )
@@ -40,6 +43,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 20,
     },
+    thumbnail: {
+        marginVertical: 20,
+        width: 200,
+        height: 200,
+    },
     button: {
         width: '80%',
         height: 40,
@@ -47,7 +55,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 10,
+        marginVertical: 10,
     },
     buttonText: {
         color: '#fff',

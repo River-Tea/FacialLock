@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Image } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 
-const API_BASE_URL = 'http://192.168.1.7:5000';
 
 const HomeScreen = ({ navigation }) => {
     const route = useRoute();
@@ -19,12 +18,16 @@ const HomeScreen = ({ navigation }) => {
 
     const handleLogout = async () => {
         setUsername(null)
-        navigation.navigate('LoginOption')
+        navigation.navigate('Welcome')
     };
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Welcome, {username}!</Text>
+            <Image
+                style={styles.thumbnail}
+                source={require('../assets/Welcome.jpg')}
+            />
             <TouchableOpacity style={styles.button} onPress={handleLogout}>
                 <Text style={styles.buttonText}>Log Out</Text>
             </TouchableOpacity>
@@ -46,6 +49,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 20,
     },
+    thumbnail: {
+        marginVertical: 20,
+        width: 200,
+        height: 200,
+    },
     input: {
         width: '80%',
         height: 40,
@@ -62,7 +70,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 10,
+        marginVertical: 10,
     },
     buttonText: {
         color: '#fff',
